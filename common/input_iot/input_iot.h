@@ -3,7 +3,7 @@
 #include "esp_err.h"
 #include "hal/gpio_types.h"
 
-typedef void (*input_callback_t)(int);
+typedef void (*input_callback_t)(int, uint64_t);
 
 typedef enum
 {
