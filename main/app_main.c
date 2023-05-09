@@ -14,10 +14,14 @@
 #include "input_iot.h"
 #include "output_iot.h"
 #include "freertos/event_groups.h"
-static EventGroupHandle_t xEventGroup;              // static thì biến này dùng trong app_main, tranh khai bao trung cac file
+
+
+EventGroupHandle_t xEventGroup;              // static thì biến này dùng trong app_main, tranh khai bao trung cac file
 /* Can use project configuration menu (idf.py menuconfig) to choose the GPIO to blink,
    or you can edit the following line and set a number here.
 */
+
+
 #define BLINK_GPIO 2
 #define BIT_PRESS_SHORT   	( 1 << 0 ) 
 #define BIT_PRESS_NORMAL	( 1 << 1 ) 
@@ -37,8 +41,12 @@ void input_event_callback(int pin, uint64_t tick)
         }else if(press_ms < 3000)
         {
             xEventGroupSetBitsFromISR(xEventGroup, BIT_PRESS_NORMAL, &pxHigherPriorityTaskWoken);
-        }else if(press_ms > 3000)   
-            xEventGroupSetBitsFromISR(xEventGroup, BIT_PRESS_LONG, &pxHigherPriorityTaskWoken);
+        }
+        else if(press_ms > 3000)   
+            // xEventGroupSetBitsFromISR(xEventGroup, BIT_PRESS_LONG, &pxHigherPriorityTaskWoken);
+        {
+
+        }
     }
 }
 
@@ -71,10 +79,23 @@ void vTaskCode( void * pvParameters)
     }
 }
 
+
+
+// Hàm xử lý call back timout
+void button_timeout_event_callback(int pin)
+{
+    if(pin == BUTTON0)
+    {
+        printf("timoutttttttttttttttttttttt \n");
+        output_io_toggle(2);
+    }
+}
+
 void app_main(void)
 {
     /* Attempt to create the event group. */
     xEventGroup = xEventGroupCreate();  
+
 
     // Khai bao mot cai nut nhan, bat suon xuong
     output_io_create(BLINK_GPIO);
@@ -82,7 +103,8 @@ void app_main(void)
 
     // Set ham call back
     // Bat cu khi nao xay ra ngat no se goi ham "output_event_callback()"
-    input_set_callback(input_event_callback); 
+    input_set_callback(input_event_callback);
+    input_set_timeout_callback(button_timeout_event_callback);
 
     // Tạo task xu ly data
     xTaskCreate(
